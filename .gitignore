@@ -5,6 +5,7 @@ __pycache__/
 .env
 .env.*
 !.env.docker.example
+!frontend/.env.production
 *.env
 *.txt
 !requirements-vercel.txt

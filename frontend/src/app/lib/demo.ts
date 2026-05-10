@@ -17,6 +17,15 @@ import type {
 import { setAccessToken, setRefreshToken, setSession } from "./storage";
 
 export function isDemoMode(): boolean {
+  if (typeof window !== "undefined") {
+    try {
+      if (window.localStorage.getItem("citypulse_demo") === "1") {
+        return true;
+      }
+    } catch {
+      /* private mode */
+    }
+  }
   return process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 }
 
