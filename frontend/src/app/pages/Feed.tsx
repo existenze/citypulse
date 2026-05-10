@@ -185,6 +185,14 @@ export function Feed() {
 
   return (
     <div className="min-h-screen bg-background">
+      {process.env.NEXT_PUBLIC_DEMO_MODE === "true" && (
+        <div
+          role="status"
+          className="border-b border-amber-500/40 bg-amber-500/10 px-4 py-2 text-center text-sm text-amber-950 dark:text-amber-100"
+        >
+          Demo mode: all data is mocked in the browser — no backend required.
+        </div>
+      )}
       {/* Header */}
       <header className="bg-background/95 backdrop-blur border-b border-border sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">

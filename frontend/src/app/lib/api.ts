@@ -15,6 +15,11 @@ import type {
   UserRead,
 } from "./contracts";
 import {
+  demoApiRequest,
+  demoRefreshAccessToken,
+  isDemoMode,
+} from "./demo";
+import {
   clearAuthTokens,
   getAccessToken,
   getRefreshToken,
@@ -118,6 +123,9 @@ async function try_refresh_with_options(
   path: string,
   init: RequestInit,
 ): Promise<string | null> {
+  if (isDemoMode()) {
+    return demoRefreshAccessToken();
+  }
   let response: Response;
   try {
     response = await fetch(build_api_url(path), {
@@ -176,6 +184,9 @@ async function request<T>(
   options: RequestOptions = {},
   alreadyRetried = false,
 ): Promise<T> {
+  if (isDemoMode()) {
+    return demoApiRequest<T>(path, options);
+  }
   const { auth = false, authToken, headers, ...rest } = options;
   const nextHeaders = new Headers(headers ?? {});
   if (
