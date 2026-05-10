@@ -183,7 +183,9 @@ export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
           <DialogHeader>
             <DialogTitle>Welcome to CityPulse</DialogTitle>
             <DialogDescription>
-              Sign in or create an account to discover and attend events in your city
+              {process.env.NEXT_PUBLIC_DEMO_MODE === "true"
+                ? "Demo mode: use any email and password — your profile is saved only in this browser."
+                : "Sign in or create an account to discover and attend events in your city"}
             </DialogDescription>
           </DialogHeader>
 

@@ -24,20 +24,6 @@ export function Landing() {
   useEffect(() => {
     let isMounted = true;
     const bootstrapSession = async () => {
-      if (
-        typeof window !== "undefined" &&
-        process.env.NEXT_PUBLIC_DEMO_MODE === "true"
-      ) {
-        const paramsEarly = new URLSearchParams(window.location.search);
-        if (paramsEarly.get("auth") !== "reset") {
-          const { bootstrapDemoSession } = await import("../lib/demo");
-          bootstrapDemoSession();
-          if (isMounted) {
-            router.push("/feed");
-          }
-          return;
-        }
-      }
       if (typeof window !== 'undefined') {
         const params = new URLSearchParams(window.location.search);
         if (params.get('auth') === 'reset') {

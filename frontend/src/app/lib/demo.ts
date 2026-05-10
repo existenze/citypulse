@@ -10,7 +10,6 @@ import type {
   EventImageUploadResponse,
   EventUpdateBody,
   EventWithInteractionsRead,
-  PasswordResetConfirmBody,
   TokenPair,
   TrendEntryRead,
   UserRead,
@@ -31,6 +30,21 @@ export const DEMO_USER: UserRead = {
   city_location: "san diego",
   created_at: new Date().toISOString(),
 };
+
+/** Session profile when user signs up / logs in via the modal (demo-only, not persisted to any server). */
+let demoProfileUser: UserRead | null = null;
+
+function currentDemoUser(): UserRead {
+  return demoProfileUser ?? DEMO_USER;
+}
+
+function titleCaseLocalPart(email: string): string {
+  const local = email.split("@")[0] || "explorer";
+  if (!local.length) {
+    return "Explorer";
+  }
+  return local.charAt(0).toUpperCase() + local.slice(1);
+}
 
 let nextEventId = 100;
 let nextCommentId = 500;
@@ -283,26 +297,53 @@ export async function demoApiRequest<T>(pathWithQuery: string, options: DemoRequ
     typeof options.body === "string" ? options.body : null,
   );
 
-  if (method === "POST" && pathname === "/api/auth/login") {
-    return tokens() as T;
-  }
   if (method === "POST" && pathname === "/api/auth/register") {
+    const p = bodyJson as {
+      name?: string;
+      email?: string;
+      password?: string;
+      city_location?: string;
+    } | null;
+    const email = (p?.email ?? "guest@demo.local").trim().toLowerCase();
+    const name = (p?.name ?? "Guest").trim() || "Guest";
+    demoProfileUser = {
+      id: 1,
+      name,
+      email,
+      city_location: "san diego",
+      created_at: new Date().toISOString(),
+    };
     return tokens() as T;
   }
+
+  if (method === "POST" && pathname === "/api/auth/login") {
+    const p = bodyJson as { email?: string; password?: string } | null;
+    const email = (p?.email ?? "").trim().toLowerCase();
+    const safeEmail = email || "explorer@demo.local";
+    // Sign-up flow calls login right after register — keep the registered name.
+    if (demoProfileUser && demoProfileUser.email === safeEmail) {
+      return tokens() as T;
+    }
+    demoProfileUser = {
+      id: 1,
+      name: titleCaseLocalPart(safeEmail),
+      email: safeEmail,
+      city_location: "san diego",
+      created_at: new Date().toISOString(),
+    };
+    return tokens() as T;
+  }
+
   if (method === "POST" && (pathname === "/api/auth/refresh" || pathname === "/api/auth/refresh-token")) {
     return tokens() as T;
   }
   if (method === "GET" && pathname === "/api/auth/me") {
-    return clone(DEMO_USER) as T;
+    return clone(currentDemoUser()) as T;
   }
   if (method === "POST" && pathname === "/api/auth/forgot-password") {
     return { success: true } as unknown as T;
   }
   if (method === "POST" && pathname === "/api/auth/reset-password") {
-    const payload = bodyJson as PasswordResetConfirmBody | null;
-    if (!payload?.token || !payload.access_code || !payload.new_password) {
-      throw new Error("Invalid reset payload");
-    }
     return { success: true } as unknown as T;
   }
 
@@ -494,10 +535,12 @@ export async function demoApiRequest<T>(pathWithQuery: string, options: DemoRequ
 }
 
 export function bootstrapDemoSession(): void {
+  demoProfileUser = null;
+  const user = clone(DEMO_USER);
   setSession({
     accessToken: DEMO_ACCESS,
     refreshToken: DEMO_REFRESH,
-    currentUser: clone(DEMO_USER),
+    currentUser: user,
   });
 }
 
